@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Staff accounts')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<div th:replace="~{fragments/layout :: admin(~{::content})}">
+<th:block th:fragment="content">
+<div class="page-head"><div><h1>Staff accounts</h1><p>Administrators manage students and cards. Security officers can only scan and check cards.</p></div></div>
+<div th:replace="~{fragments/layout :: errors}"></div>
+<div class="grid-main">
+  <section class="panel panel--flush">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Name</th><th>Role</th><th class="hide-sm">Last sign-in</th><th>Account</th></tr></thead>
+      <tbody>
+        <tr th:each="u : ${staffList}">
+          <td><b th:text="${u.fullName}">Name</b><small class="muted" style="display:block" th:text="${u.username}">user</small></td>
+          <td th:text="${u.roleLabel}">Role</td>
+          <td class="hide-sm num" th:text="${u.lastLoginText}">Never</td>
+          <td>
+            <form method="post" th:action="@{/admin/staff/toggle}" th:attr="data-confirm=${u.active ? 'Switch off this account? The person can no longer sign in.' : null}">
+              <input type="hidden" name="id" th:value="${u.id}"><input type="hidden" name="active" th:value="${!u.active}">
+              <span th:class="'status status--' + ${u.active ? 'active' : 'suspended'}" th:text="${u.active} ? 'Active' : 'Switched off'">Active</span>
+              <button class="linklike" type="submit" style="margin-left:8px" th:text="${u.active} ? 'Switch off' : 'Switch on'">Switch off</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <form class="panel form" method="post" th:action="@{/admin/staff}" novalidate>
+    <h2>Add a staff member</h2>
+    <div class="field" th:classappend="${errors.get('fullName') != null} ? 'field--error'"><label for="fullName">Name</label><input id="fullName" name="fullName" type="text" required th:value="${form.get('fullName')}"><span th:replace="~{fragments/layout :: err('fullName')}"></span></div>
+    <div class="field" th:classappend="${errors.get('username') != null} ? 'field--error'"><label for="username">Username</label><input id="username" name="username" type="text" autocapitalize="none" required th:value="${form.get('username')}"><span th:replace="~{fragments/layout :: err('username')}"></span></div>
+    <div class="field" th:classappend="${errors.get('role') != null} ? 'field--error'"><label for="role">Role</label>
+      <select id="role" name="role"><option value="SECURITY" th:selected="${form.get('role') != 'ADMIN'}">Security officer (scan only)</option><option value="ADMIN" th:selected="${form.get('role') == 'ADMIN'}">Administrator</option></select>
+      <span th:replace="~{fragments/layout :: err('role')}"></span></div>
+    <div th:replace="~{fragments/forms :: new_password('First password', false)}"></div>
+    <button class="btn btn--primary" type="submit"><svg aria-hidden="true"><use href="#i-plus"/></svg>Create account</button>
+  </form>
+</div>
+</th:block>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

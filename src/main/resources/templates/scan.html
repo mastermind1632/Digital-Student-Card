@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Scan cards')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<div th:replace="~{fragments/layout :: admin(~{::content})}">
+<th:block th:fragment="content">
+<div class="page-head">
+  <div><h1>Scan cards</h1><p>Hold the QR code on the back of a card in front of the camera. Each card is checked as soon as it is in view.</p></div>
+</div>
+<div class="scanner" data-scanner th:attr="data-check-url=@{/scan/check}">
+  <div class="stack">
+    <div class="viewfinder is-idle" id="viewfinder">
+      <div id="reader"></div>
+      <div class="viewfinder__frame" aria-hidden="true"></div>
+      <div class="viewfinder__idle" data-idle>
+        <svg aria-hidden="true"><use href="#i-camera"/></svg>
+        <p>The camera is off.</p>
+        <button type="button" class="btn btn--primary" data-start-camera><svg aria-hidden="true"><use href="#i-camera"/></svg>Start camera</button>
+        <p class="muted" style="font-size:.85rem;max-width:34ch">Your browser will ask for permission. Cameras only work on https:// addresses or on localhost.</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field" style="flex:1;min-width:180px">
+        <label for="camera-select">Camera</label>
+        <select id="camera-select" data-camera-select disabled><option>Start the camera to choose</option></select>
+      </div>
+      <div class="field" style="flex:1;min-width:180px">
+        <label for="location">Where you are</label>
+        <input id="location" type="text" placeholder="e.g. Library entrance" maxlength="80" data-location>
+      </div>
+    </div>
+    <div class="row">
+      <button type="button" class="btn btn--secondary" data-stop-camera hidden>Stop camera</button>
+      <label class="row" style="font-size:.9rem"><input type="checkbox" data-sound checked> Beep on result</label>
+    </div>
+    <form class="panel form" data-manual novalidate>
+      <h2>No QR code?</h2>
+      <div class="field">
+        <label for="manual-number">Type the student number</label>
+        <div class="row"><input id="manual-number" class="input-mono" type="text" inputmode="numeric" maxlength="12" placeholder="9 digits" style="flex:1" required>
+          <button class="btn btn--primary" type="submit">Check</button></div>
+      </div>
+    </form>
+  </div>
+
+  <div class="stack">
+    <div class="scan-result" data-result aria-live="assertive"></div>
+    <div class="panel" data-result-empty>
+      <h2>Waiting for a card</h2>
+      <p class="muted" style="margin-top:6px">The result appears here with the student's photo. Compare the photo with the person in front of you.</p>
+    </div>
+    <section class="panel panel--flush">
+      <div class="panel__head"><h2>This session</h2><span class="muted" data-tally>0 checked</span></div>
+      <ul class="list history" data-history><li class="muted">No scans yet.</li></ul>
+    </section>
+  </div>
+</div>
+
+<template id="result-template">
+  <section class="verdict">
+    <div class="verdict__band"><svg aria-hidden="true"><use href="#i-check"/></svg><div><h2 data-f="headline"></h2><p data-f="advice"></p></div></div>
+    <div class="verdict__body" data-student>
+      <img class="verdict__photo" alt="Photo on record" data-f="photo">
+      <div>
+        <p class="verdict__name" data-f="name"></p>
+        <dl class="facts">
+          <dt>Student number</dt><dd class="num" data-f="number"></dd>
+          <dt>Campus</dt><dd data-f="campus"></dd>
+          <dt>Qualification</dt><dd data-f="qualification"></dd>
+          <dt>Valid until</dt><dd data-f="expiry"></dd>
+          <dt data-reason-label>Reason</dt><dd data-f="reason"></dd>
+        </dl>
+        <p style="margin-top:12px" data-profile-wrap><a data-f="profile">Open student record</a></p>
+      </div>
+    </div>
+    <div class="verdict__clock"><span>Checked at <b data-f="checkedAt"></b></span></div>
+  </section>
+</template>
+<script th:src="@{/assets/vendor/html5-qrcode-2.3.8.min.js}"></script>
+<script th:src="@{/assets/js/scan.js}"></script>
+</th:block>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

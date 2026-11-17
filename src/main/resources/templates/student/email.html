@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Email my card')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page page--narrow" th:with="s=${student}">
+  <p class="crumbs"><a th:href="@{/student}">My card</a></p>
+  <div class="page-head"><div><h1>Email my card</h1><p>We'll send the PDF card to <b th:text="${s.email}">you</b>. To use another address, <a th:href="@{/student/profile}">change your email</a> first.</p></div></div>
+  <div th:if="${emailError != null}" class="notice notice--error" role="alert" style="margin-bottom:16px"><svg aria-hidden="true"><use href="#i-alert"/></svg><p th:text="${emailError}">Error</p></div>
+  <div th:if="${!s.cardValid}" class="notice notice--warning"><svg aria-hidden="true"><use href="#i-warning"/></svg><p th:text="'Your card can be emailed once it is valid. Current status: ' + ${s.statusLabel} + '.'">Not valid yet.</p></div>
+  <form th:if="${s.cardValid and mailEnabled}" class="panel form" method="post" th:action="@{/student/email}">
+    <p>The email includes your card as a PDF and a link anyone can use to check it.</p>
+    <div><button class="btn btn--primary" type="submit"><svg aria-hidden="true"><use href="#i-mail"/></svg>Send my card</button></div>
+  </form>
+  <div th:if="${s.cardValid and !mailEnabled}" class="panel stack">
+    <div class="notice notice--info"><svg aria-hidden="true"><use href="#i-info"/></svg><p>Email has not been set up on this server yet. Download the PDF instead and attach it yourself.</p></div>
+    <div><a class="btn btn--primary" th:href="@{/student/card.pdf}"><svg aria-hidden="true"><use href="#i-download"/></svg>Download PDF</a></div>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

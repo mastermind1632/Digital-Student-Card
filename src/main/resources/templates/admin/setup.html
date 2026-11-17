@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Set up the card office')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page page--narrow">
+  <div class="page-head"><div><h1>Create the first administrator</h1><p>No staff accounts exist yet. The account you create here can approve cards and add other staff. This page closes as soon as it is used.</p></div></div>
+  <div th:replace="~{fragments/layout :: errors}"></div>
+  <form class="panel form" method="post" th:action="@{/admin/setup}" novalidate>
+    <div class="field" th:if="${needsKey}" th:classappend="${errors.get('setupKey') != null} ? 'field--error'">
+      <label for="setupKey">Setup key</label>
+      <input id="setupKey" name="setupKey" type="password" required>
+      <span class="hint">The value of APP_SETUP_KEY on the server.</span>
+      <span th:replace="~{fragments/layout :: err('setupKey')}"></span>
+    </div>
+    <div class="field" th:classappend="${errors.get('fullName') != null} ? 'field--error'">
+      <label for="fullName">Your name</label>
+      <input id="fullName" name="fullName" type="text" required th:value="${form.get('fullName')}">
+      <span th:replace="~{fragments/layout :: err('fullName')}"></span>
+    </div>
+    <div class="field" th:classappend="${errors.get('username') != null} ? 'field--error'">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocapitalize="none" required th:value="${form.get('username')}">
+      <span th:replace="~{fragments/layout :: err('username')}"></span>
+    </div>
+    <div th:replace="~{fragments/forms :: new_password('Password', true)}"></div>
+    <button class="btn btn--primary btn--block" type="submit">Create administrator</button>
+  </form>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

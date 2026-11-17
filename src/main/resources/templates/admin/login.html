@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Staff sign-in')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page page--narrow">
+  <div class="page-head"><div><h1>Staff sign-in</h1><p>For the card office and campus security.</p></div></div>
+  <div th:if="${loginError != null}" class="notice notice--error" role="alert" style="margin-bottom:16px"><svg aria-hidden="true"><use href="#i-alert"/></svg><p th:text="${loginError}">Error</p></div>
+  <form class="panel form" method="post" th:action="@{/admin/login}" novalidate>
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" required autofocus>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" required><button type="button" class="btn btn--quiet btn--sm reveal" data-reveal="password">Show</button></div>
+    </div>
+    <button class="btn btn--primary btn--block" type="submit">Sign in</button>
+  </form>
+  <p class="muted" style="margin-top:20px">Students sign in <a th:href="@{/login}">here</a>.</p>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

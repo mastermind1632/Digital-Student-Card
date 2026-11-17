@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Student card')}"></head>
+<body class="showcard-body">
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<main id="main" class="showcard" data-wake-lock th:with="s=${student}">
+  <div class="showcard__bar">
+    <a class="btn btn--quiet" th:href="@{/student}"><svg aria-hidden="true"><use href="#i-arrow-left"/></svg>Back</a>
+    <span th:class="'status status--' + ${s.statusKey}" th:text="${s.statusLabel}">Status</span>
+  </div>
+  <div class="showcard__stage">
+    <div th:replace="~{fragments/card :: flip(${s}, @{/media/photo(sn=${s.studentNumber})}, ${s.cardValid})}"></div>
+    <div class="showcard__tools">
+      <button type="button" class="btn btn--secondary" data-flip-toggle data-alt-label="Show front"><svg aria-hidden="true"><use href="#i-flip"/></svg><span data-label>Show QR code</span></button>
+      <a class="btn btn--secondary" th:href="@{/student/card.pdf}"><svg aria-hidden="true"><use href="#i-download"/></svg>PDF</a>
+    </div>
+    <p class="showcard__hint">Tap the card to turn it over. The clock proves the card is live. Your screen stays on while this page is open.</p>
+  </div>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

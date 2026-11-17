@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Your student card on your phone')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main">
+  <section class="hero">
+    <div>
+      <h1>Your student card, on your phone and checkable anywhere.</h1>
+      <p class="hero__lede">Register once with your ID number and photo. Show the card at gates, libraries and exam venues, download it as a PDF, and let staff confirm it is genuine with one scan.</p>
+      <div class="hero__actions">
+        <a th:if="${me != null and me.student}" class="btn btn--primary" th:href="@{/student}"><svg aria-hidden="true"><use href="#i-card"/></svg>Open my card</a>
+        <th:block th:unless="${me != null and me.student}">
+          <a class="btn btn--primary" th:href="@{/register}"><svg aria-hidden="true"><use href="#i-card"/></svg>Get your card</a>
+          <a class="btn btn--secondary" th:href="@{/login}">I already have one</a>
+        </th:block>
+      </div>
+    </div>
+    <div class="hero__card">
+      <div class="idcard-scene">
+        <div class="idcard" data-status="active" data-tilt aria-label="Example student card">
+          <div class="idcard__foil" aria-hidden="true"></div>
+          <div class="idcard__seal" aria-hidden="true"></div>
+          <div class="idcard__inner">
+            <div class="idcard__top"><span class="idcard__inst" th:text="${cfg.institutionName}">University</span><span class="idcard__kind">Student</span></div>
+            <div class="idcard__photo"><div class="ph" aria-hidden="true">LM</div></div>
+            <div class="idcard__who">
+              <div class="idcard__name">Lerato Mokoena</div>
+              <div class="idcard__label">Student number</div>
+              <div class="idcard__number">264 810 375</div>
+              <div class="idcard__meta">Diploma in Information Technology<br>Soshanguve South Campus</div>
+            </div>
+            <div class="idcard__bottom">
+              <div class="idcard__expiry"><span class="idcard__label">Valid until</span><b>30 Nov 2027</b></div>
+              <span class="idcard__live" data-clock>--:--:--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero__scan" aria-hidden="true">
+        <span class="tick"><svg><use href="#i-check"/></svg></span>
+        <span><b>Valid student card</b><br><span class="muted">Checked at the library gate</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="roles" aria-label="Who it is for">
+    <div class="role">
+      <h2>Students</h2>
+      <p>Your card lives in your browser and moves with you.</p>
+      <ul>
+        <li>Live card with a moving clock, so a screenshot is easy to spot</li>
+        <li>Download a print-ready PDF or email it to yourself</li>
+        <li>See every time your card was checked</li>
+      </ul>
+      <a th:href="@{/register}">Register now</a>
+    </div>
+    <div class="role">
+      <h2>Card office</h2>
+      <p>Approve new cards, renew them each year and act fast when a card is lost.</p>
+      <ul>
+        <li>Search, filter and export the student list</li>
+        <li>Suspend, renew or replace a card in one step</li>
+        <li>A full record of who changed what</li>
+      </ul>
+      <a th:href="@{/admin/login}">Staff sign-in</a>
+    </div>
+    <div class="role">
+      <h2>Campus security</h2>
+      <p>Point a phone or laptop camera at a card and get an answer in a second.</p>
+      <ul>
+        <li>Green, amber or red result with the student's photo</li>
+        <li>Forged and replaced QR codes are rejected</li>
+        <li>Works from any phone camera too</li>
+      </ul>
+      <a th:href="@{/scan}">Open the scanner</a>
+    </div>
+  </section>
+
+  <section class="how" aria-labelledby="how-title">
+    <h2 id="how-title">How it works</h2>
+    <ol>
+      <li><b>Register</b><span>Enter your ID number, contact details and a clear photo of your face.</span></li>
+      <li><b>Get approved</b><span>The card office checks your details and activates the card.</span></li>
+      <li><b>Show your card</b><span>Open it on your phone, or print the PDF version.</span></li>
+      <li><b>Get scanned</b><span>Staff scan the QR code to confirm it is valid today.</span></li>
+    </ol>
+  </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

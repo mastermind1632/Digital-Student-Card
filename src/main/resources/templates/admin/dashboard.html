@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Overview')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<div th:replace="~{fragments/layout :: admin(~{::content})}">
+<th:block th:fragment="content">
+<div class="page-head">
+  <div><h1>Overview</h1><p th:text="${stats.total} + ' students registered. ' + ${stats.activePercent} + '% hold a valid card.'">Summary</p></div>
+  <div class="row">
+    <a class="btn btn--secondary" th:href="@{/scan}"><svg aria-hidden="true"><use href="#i-scan"/></svg>Scan cards</a>
+    <a class="btn btn--primary" th:href="@{/admin/students/new}"><svg aria-hidden="true"><use href="#i-plus"/></svg>Register a student</a>
+  </div>
+</div>
+
+<div class="metrics" style="margin-bottom:24px">
+  <a class="metric" th:href="@{/admin/students(status='active')}"><span class="metric__value" th:text="${stats.active}">0</span><span class="metric__label">Valid cards</span><span class="metric__note" th:if="${stats.expiringSoon > 0}" th:text="${stats.expiringSoon} + ' expire within 30 days'">note</span></a>
+  <a class="metric" th:href="@{/admin/students(status='pending')}"><span class="metric__value" th:text="${stats.pending}">0</span><span class="metric__label">Awaiting approval</span></a>
+  <a class="metric" th:href="@{/admin/students(status='expired')}"><span class="metric__value" th:text="${stats.expired}">0</span><span class="metric__label">Expired</span></a>
+  <a class="metric" th:href="@{/admin/checks}"><span class="metric__value" th:text="${stats.checksToday}">0</span><span class="metric__label">Checks today</span><span class="metric__note" th:if="${stats.failedChecksToday > 0}" th:text="${stats.failedChecksToday} + ' not valid'">note</span></a>
+</div>
+
+<div class="grid-main">
+  <div class="stack-lg">
+    <section class="panel panel--flush">
+      <div class="panel__head"><h2>Awaiting approval</h2><a th:href="@{/admin/students(status='pending')}">See all</a></div>
+      <div class="empty" th:if="${#lists.isEmpty(pending)}"><h3>Nothing to approve</h3><p>New self-registrations appear here.</p></div>
+      <form th:unless="${#lists.isEmpty(pending)}" method="post" th:action="@{/admin/students/bulk}" data-bulk>
+        <input type="hidden" name="action" value="approve"><input type="hidden" name="back" value="/admin">
+        <div class="table-wrap"><table class="table">
+          <thead><tr><th class="check"><input type="checkbox" data-select-all aria-label="Select all"></th><th>Student</th><th>Registered</th><th></th></tr></thead>
+          <tbody>
+            <tr th:each="p : ${pending}">
+              <td class="check"><input type="checkbox" name="sn" th:value="${p.studentNumber}" th:attr="aria-label='Select ' + ${p.fullName}"></td>
+              <td><div class="person"><img th:src="@{/media/photo(sn=${p.studentNumber})}" alt="" loading="lazy"><div><a th:href="@{/admin/student(sn=${p.studentNumber})}" th:text="${p.fullName}">Name</a><small class="num" th:text="${p.studentNumber}">000</small></div></div></td>
+              <td class="num" th:text="${p.createdAtText}">date</td>
+              <td><a class="btn btn--secondary btn--sm" th:href="@{/admin/student(sn=${p.studentNumber})}">Review</a></td>
+            </tr>
+          </tbody>
+        </table></div>
+        <div class="panel__foot"><button class="btn btn--primary btn--sm" type="submit" data-needs-selection disabled>Approve selected</button></div>
+      </form>
+    </section>
+
+    <section class="panel panel--flush">
+      <div class="panel__head"><h2>Latest card checks</h2><a th:href="@{/admin/checks}">See all</a></div>
+      <div class="empty" th:if="${#lists.isEmpty(recentChecks)}"><h3>No checks yet</h3><p>Scans from the gate scanner and phone cameras appear here.</p></div>
+      <ul class="list" th:unless="${#lists.isEmpty(recentChecks)}">
+        <li th:each="ch : ${recentChecks}"><span><span th:class="'status status--' + ${ch.passed ? 'valid' : 'failed'}" th:text="${ch.resultLabel}">Valid</span> <th:block th:text="${ch.studentName} ?: ${ch.studentNumber}">Name</th:block> <span class="meta"><th:block th:text="${ch.methodLabel}">Scan</th:block><th:block th:if="${ch.location != null and ch.location != ''}" th:text="', ' + ${ch.location}"></th:block></span></span><span class="meta" th:text="${ch.checkedAtText}">time</span></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="stack-lg">
+    <section class="panel">
+      <h2 style="margin-bottom:16px">New registrations</h2>
+      <div class="columns" role="img" aria-label="Registrations per month for the last six months">
+        <div class="column" th:each="m : ${stats.registrationsByMonth}"><span class="column__value" th:text="${m.count}">0</span><span class="column__bar" th:style="'height:' + ${m.percent} + '%'"></span><span th:text="${m.name}">Month</span></div>
+      </div>
+    </section>
+    <section class="panel">
+      <h2 style="margin-bottom:16px">Students per campus</h2>
+      <p class="muted" th:if="${#lists.isEmpty(stats.byCampus)}">No students yet.</p>
+      <div class="bars" th:unless="${#lists.isEmpty(stats.byCampus)}">
+        <div class="bar" th:each="b, it : ${stats.byCampus}" th:if="${it.index < 8}"><span th:text="${b.name}">Campus</span><span class="num" th:text="${b.count}">0</span><div class="bar__track"><div class="bar__fill" th:style="'width:' + ${b.percent} + '%'"></div></div></div>
+      </div>
+    </section>
+    <section class="panel panel--flush">
+      <div class="panel__head"><h2>Recent activity</h2><a th:href="@{/admin/audit}">See all</a></div>
+      <ul class="list">
+        <li th:each="e : ${recentEvents}"><span><th:block th:text="${e.action}">Action</th:block><span class="meta" style="display:block"><th:block th:text="${e.actor == e.target} ? 'Student' : ${e.actor}">actor</th:block><th:block th:if="${e.target != null and e.actor != e.target}" th:text="', record ' + ${e.target}"></th:block></span></span><span class="meta" th:text="${e.occurredAtText}">time</span></li>
+        <li class="muted" th:if="${#lists.isEmpty(recentEvents)}">Nothing yet.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+</th:block>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

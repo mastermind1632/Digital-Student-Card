@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Student detail fields shared by self-registration and the staff "register / edit student" form.
+     mode: register | new | edit. Reads form (RegistrationForm) and errors. -->
+<th:block th:fragment="student_fields(mode)">
+<fieldset>
+  <legend>About you</legend>
+  <div class="form-grid">
+    <div class="field span-2" th:classappend="${errors.get('fullName') != null} ? 'field--error'">
+      <label for="fullName">Full name</label>
+      <input id="fullName" name="fullName" type="text" autocomplete="name" required maxlength="100" th:value="${form.fullName}">
+      <span class="hint">As it appears on the ID document.</span>
+      <span th:replace="~{fragments/layout :: err('fullName')}"></span>
+    </div>
+    <div class="field span-2" th:if="${mode != 'edit'}" th:classappend="${errors.get('idNumber') != null} ? 'field--error'">
+      <label for="idNumber">South African ID number</label>
+      <input id="idNumber" name="idNumber" class="input-mono" type="text" inputmode="numeric" autocomplete="off" required maxlength="16" th:value="${form.idNumber}" data-id-reader="id-readout">
+      <div class="id-readout" id="id-readout" aria-live="polite"></div>
+      <span th:replace="~{fragments/layout :: err('idNumber')}"></span>
+    </div>
+    <div class="field" th:classappend="${errors.get('email') != null} ? 'field--error'">
+      <label for="email">Email address</label>
+      <input id="email" name="email" type="email" autocomplete="email" required th:value="${form.email}">
+      <span th:replace="~{fragments/layout :: err('email')}"></span>
+    </div>
+    <div class="field" th:classappend="${errors.get('phoneNumber') != null} ? 'field--error'">
+      <label for="phoneNumber">Cellphone number</label>
+      <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" placeholder="082 123 4567" th:value="${form.phoneNumber}">
+      <span th:replace="~{fragments/layout :: err('phoneNumber')}"></span>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Studies</legend>
+  <div class="form-grid">
+    <div class="field" th:classappend="${errors.get('campus') != null} ? 'field--error'">
+      <label for="campus">Campus</label>
+      <select id="campus" name="campus" required>
+        <option value="">Choose a campus</option>
+        <option th:each="opt : ${cfg.campuses}" th:value="${opt}" th:text="${opt}" th:selected="${form.campus == opt}">Campus</option>
+      </select>
+      <span th:replace="~{fragments/layout :: err('campus')}"></span>
+    </div>
+    <div class="field" th:classappend="${errors.get('department') != null} ? 'field--error'">
+      <label for="department">Faculty</label>
+      <select id="department" name="department" required>
+        <option value="">Choose a faculty</option>
+        <option th:each="opt : ${cfg.departments}" th:value="${opt}" th:text="${opt}" th:selected="${form.department == opt}">Faculty</option>
+      </select>
+      <span th:replace="~{fragments/layout :: err('department')}"></span>
+    </div>
+    <div class="field" th:classappend="${errors.get('qualification') != null} ? 'field--error'">
+      <label for="qualification">Qualification</label>
+      <input id="qualification" name="qualification" type="text" required maxlength="120" placeholder="e.g. Diploma in Information Technology" th:value="${form.qualification}">
+      <span th:replace="~{fragments/layout :: err('qualification')}"></span>
+    </div>
+    <div class="field" th:classappend="${errors.get('yearOfStudy') != null} ? 'field--error'">
+      <label for="yearOfStudy">Year of study</label>
+      <select id="yearOfStudy" name="yearOfStudy" required>
+        <option value="">Choose a year</option>
+        <option value="1" th:selected="${form.yearOfStudy == 1}">First year</option>
+        <option value="2" th:selected="${form.yearOfStudy == 2}">Second year</option>
+        <option value="3" th:selected="${form.yearOfStudy == 3}">Third year</option>
+        <option value="4" th:selected="${form.yearOfStudy == 4}">Fourth year</option>
+        <option value="5" th:selected="${form.yearOfStudy == 5}">Fifth year</option>
+        <option value="6" th:selected="${form.yearOfStudy == 6}">Sixth year</option>
+        <option value="7" th:selected="${form.yearOfStudy == 7}">Seventh year</option>
+      </select>
+      <span th:replace="~{fragments/layout :: err('yearOfStudy')}"></span>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset th:if="${mode != 'edit'}">
+  <legend>Card photo</legend>
+  <div class="field" th:classappend="${errors.get('photo') != null} ? 'field--error'">
+    <div class="photo-picker">
+      <div class="photo-frame" id="photo-preview"><svg aria-hidden="true"><use href="#i-image"/></svg></div>
+      <div class="stack">
+        <label for="photo">A recent photo of the face, looking at the camera, on a plain background.</label>
+        <input id="photo" name="photo" type="file" accept="image/jpeg,image/png" required data-preview="photo-preview">
+        <span class="hint">JPG or PNG, up to 5 MB. It is cropped to the card shape automatically.<th:block th:if="${!errors.isEmpty()}"> For your safety, choose the photo again after a correction.</th:block></span>
+        <span th:replace="~{fragments/layout :: err('photo')}"></span>
+      </div>
+    </div>
+  </div>
+</fieldset>
+</th:block>
+
+<!-- New password + confirmation, with the live strength meter. label = text of the first label. -->
+<div th:fragment="new_password(label, showRules)" class="form-grid">
+  <div class="field" th:classappend="${errors.get('password') != null} ? 'field--error'">
+    <label for="password" th:text="${label}">Password</label>
+    <div class="password-wrap">
+      <input id="password" name="password" type="password" autocomplete="new-password" required aria-describedby="pw-rules" data-strength="pw-strength">
+      <button type="button" class="btn btn--quiet btn--sm reveal" data-reveal="password">Show</button>
+    </div>
+    <div class="strength" id="pw-strength" data-score="0" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <ul class="checklist" id="pw-rules" data-rules-for="password" th:if="${showRules}">
+      <li data-rule="len">8 or more characters</li><li data-rule="case">Upper and lower case</li><li data-rule="digit">A number</li><li data-rule="symbol">A symbol</li>
+    </ul>
+    <span th:replace="~{fragments/layout :: err('password')}"></span>
+  </div>
+  <div class="field" th:classappend="${errors.get('confirmPassword') != null} ? 'field--error'">
+    <label for="confirmPassword">Type it again</label>
+    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required data-match="password">
+    <span class="error-text" data-match-msg hidden>The passwords do not match yet.</span>
+    <span th:replace="~{fragments/layout :: err('confirmPassword')}"></span>
+  </div>
+</div>
+
+<!-- Change-password form for students and staff. action = URL to post to. -->
+<form th:fragment="change_password(action)" class="panel form" method="post" th:action="${action}" novalidate>
+  <div th:replace="~{fragments/layout :: errors}"></div>
+  <div class="field" th:classappend="${errors.get('currentPassword') != null} ? 'field--error'">
+    <label for="currentPassword">Current password</label>
+    <div class="password-wrap"><input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required><button type="button" class="btn btn--quiet btn--sm reveal" data-reveal="currentPassword">Show</button></div>
+    <span th:replace="~{fragments/layout :: err('currentPassword')}"></span>
+  </div>
+  <div class="field" th:classappend="${errors.get('newPassword') != null} ? 'field--error'">
+    <label for="newPassword">New password</label>
+    <div class="password-wrap"><input id="newPassword" name="newPassword" type="password" autocomplete="new-password" required data-strength="np-strength"><button type="button" class="btn btn--quiet btn--sm reveal" data-reveal="newPassword">Show</button></div>
+    <div class="strength" id="np-strength" data-score="0" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <ul class="checklist" data-rules-for="newPassword"><li data-rule="len">8 or more characters</li><li data-rule="case">Upper and lower case</li><li data-rule="digit">A number</li><li data-rule="symbol">A symbol</li></ul>
+    <span th:replace="~{fragments/layout :: err('newPassword')}"></span>
+  </div>
+  <div class="field" th:classappend="${errors.get('confirmPassword') != null} ? 'field--error'">
+    <label for="confirmPassword">Type the new password again</label>
+    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required data-match="newPassword">
+    <span class="error-text" data-match-msg hidden>The passwords do not match yet.</span>
+    <span th:replace="~{fragments/layout :: err('confirmPassword')}"></span>
+  </div>
+  <div><button class="btn btn--primary" type="submit">Change password</button></div>
+</form>
+
+</body>
+</html>

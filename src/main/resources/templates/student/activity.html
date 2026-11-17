@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Card checks')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page page--mid">
+  <div class="page-head">
+    <div><h1>Card checks</h1><p th:text="'Every time your card was scanned or its QR link was opened. If you see a check you don\'t recognise, your card or phone may be in someone else\'s hands: tell ' + ${cfg.cardOffice} + ' so they can replace the card.'">Every check.</p></div>
+  </div>
+  <section class="panel panel--flush">
+    <div class="empty" th:if="${#lists.isEmpty(checks)}"><h3>No checks yet</h3><p>Checks appear here as soon as staff scan your card.</p></div>
+    <div class="table-wrap" th:unless="${#lists.isEmpty(checks)}"><table class="table">
+      <thead><tr><th>When</th><th>Result</th><th>How</th><th class="hide-sm">Where</th></tr></thead>
+      <tbody>
+        <tr th:each="ch : ${checks}">
+          <td class="num" th:text="${ch.checkedAtText}">time</td>
+          <td><span th:class="'status status--' + ${ch.passed ? 'valid' : 'failed'}" th:text="${ch.resultLabel}">Valid</span></td>
+          <td th:text="${ch.methodLabel}">Scan</td>
+          <td class="hide-sm" th:text="${ch.location} ?: 'Not recorded'">Where</td>
+        </tr>
+      </tbody>
+    </table></div>
+  </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

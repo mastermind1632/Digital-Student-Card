@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${outcome.headline})}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page page--mid" th:with="s=${outcome.student}">
+  <section th:class="'verdict verdict--' + ${outcome.tone}" aria-live="polite">
+    <div class="verdict__band">
+      <svg aria-hidden="true"><use th:attr="href=${outcome.tone == 'pass' ? '#i-check' : (outcome.tone == 'warn' ? '#i-warning' : '#i-x')}"/></svg>
+      <div><h1 th:text="${outcome.headline}">Result</h1><p th:text="${outcome.advice}">Advice</p></div>
+    </div>
+    <div class="verdict__body" th:if="${s != null and photoUrl != null}">
+      <img class="verdict__photo" th:src="@{${photoUrl}}" alt="Photo on record for this card">
+      <div>
+        <p class="verdict__name" th:text="${s.fullName}">Name</p>
+        <dl class="facts">
+          <dt>Student number</dt><dd class="num" th:text="${s.studentNumberDisplay}">000</dd>
+          <dt>Campus</dt><dd th:text="${s.campus}">Campus</dd>
+          <dt>Qualification</dt><dd th:text="${s.qualification} ?: 'Not recorded'">Qualification</dd>
+          <dt>Card status</dt><dd><span th:class="'status status--' + ${s.statusKey}" th:text="${s.statusLabel}">Status</span></dd>
+          <dt>Valid until</dt><dd th:text="${s.expiryDateText} ?: '—'">date</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="verdict__clock"><span>Checked live: <b data-clock-full>--</b></span><span>Refresh the page to check again.</span></div>
+  </section>
+  <p class="muted" style="margin-top:24px">This page only shows what is needed to confirm who the card belongs to. A screenshot of this page is not proof: the time above must be the current time.</p>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

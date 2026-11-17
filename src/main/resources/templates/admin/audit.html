@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Activity log')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<div th:replace="~{fragments/layout :: admin(~{::content})}">
+<th:block th:fragment="content">
+<div class="page-head"><div><h1>Activity log</h1><p>Who registered, approved, changed, suspended or deleted what, and when. Entries cannot be edited.</p></div></div>
+<section class="panel panel--flush">
+  <form class="filters" method="get" th:action="@{/admin/audit}" role="search" style="grid-template-columns:minmax(200px,1fr) auto">
+    <div class="field"><label for="q">Search</label><input id="q" name="q" type="search" placeholder="Person, action or student number" th:value="${q}"></div>
+    <div class="field"><span class="label" aria-hidden="true">&nbsp;</span><button class="btn btn--secondary" type="submit">Search</button></div>
+  </form>
+  <div class="empty" th:if="${#lists.isEmpty(result.items)}"><h3>Nothing recorded</h3><p>Actions by students and staff appear here.</p></div>
+  <th:block th:unless="${#lists.isEmpty(result.items)}">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>When</th><th>Who</th><th>What</th><th>Record</th><th class="hide-sm">Details</th></tr></thead>
+      <tbody>
+        <tr th:each="e : ${result.items}">
+          <td class="num" th:text="${e.occurredAtText}">time</td>
+          <td th:text="${e.actor}">who</td>
+          <td th:text="${e.action}">what</td>
+          <td class="num"><a th:if="${e.studentTarget}" th:href="@{/admin/student(sn=${e.target})}" th:text="${e.target}">000</a><th:block th:unless="${e.studentTarget}" th:text="${e.target}"></th:block></td>
+          <td class="hide-sm" th:text="${e.details}">details</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="pager"><span th:text="'Showing ' + ${result.firstShown} + '–' + ${result.lastShown} + ' of ' + ${result.total}">Showing</span>
+      <span class="row">
+        <a th:if="${result.hasPrevious}" class="btn btn--secondary btn--sm" th:href="@{/admin/audit(q=${q},page=${result.previousPage})}">Previous</a>
+        <span th:text="'Page ' + ${result.page} + ' of ' + ${result.pageCount}">Page</span>
+        <a th:if="${result.hasNext}" class="btn btn--secondary btn--sm" th:href="@{/admin/audit(q=${q},page=${result.nextPage})}">Next</a>
+      </span></div>
+  </th:block>
+</section>
+</th:block>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

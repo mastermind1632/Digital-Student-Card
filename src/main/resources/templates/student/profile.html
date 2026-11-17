@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My details')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page page--mid" th:with="s=${student}">
+  <div class="page-head"><div><h1>My details</h1><p>Keep your contact details up to date so the card office can reach you.</p></div></div>
+  <div th:replace="~{fragments/layout :: errors}"></div>
+  <div class="stack-lg">
+    <form class="panel form" method="post" th:action="@{/student/profile}" novalidate>
+      <h2>Contact details</h2>
+      <div class="form-grid">
+        <div class="field" th:classappend="${errors.get('email') != null} ? 'field--error'">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="email" required th:value="${form.get('email')}">
+          <span th:replace="~{fragments/layout :: err('email')}"></span>
+        </div>
+        <div class="field" th:classappend="${errors.get('phoneNumber') != null} ? 'field--error'">
+          <label for="phoneNumber">Cellphone number</label>
+          <input id="phoneNumber" name="phoneNumber" type="tel" autocomplete="tel" required th:value="${form.get('phoneNumber')}">
+          <span th:replace="~{fragments/layout :: err('phoneNumber')}"></span>
+        </div>
+      </div>
+      <div><button class="btn btn--primary" type="submit">Save contact details</button></div>
+    </form>
+
+    <section class="panel">
+      <h2 style="margin-bottom:12px">Card photo</h2>
+      <form th:if="${canChangePhoto}" class="form" method="post" th:action="@{/student/photo}" enctype="multipart/form-data">
+        <div class="photo-picker">
+          <div class="photo-frame" id="photo-preview"><img th:src="@{/media/photo(sn=${s.studentNumber})}" alt="Your current photo"></div>
+          <div class="stack">
+            <label for="photo">Your card has not been approved yet, so you can still replace the photo.</label>
+            <input id="photo" name="photo" type="file" accept="image/jpeg,image/png" required data-preview="photo-preview">
+            <span th:replace="~{fragments/layout :: err('photo')}"></span>
+            <div><button class="btn btn--secondary" type="submit">Upload new photo</button></div>
+          </div>
+        </div>
+      </form>
+      <div th:unless="${canChangePhoto}" class="photo-picker">
+        <div class="photo-frame"><img th:src="@{/media/photo(sn=${s.studentNumber})}" alt="Your card photo"></div>
+        <p class="muted" th:text="'Your photo is part of an issued card, so it can only be changed in person at ' + ${cfg.cardOffice} + '. Bring your ID document.'">Ask the card office.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="spread"><div><h2>Password</h2><p class="muted" style="margin-top:4px">Change it if you think someone else knows it.</p></div><a class="btn btn--secondary" th:href="@{/student/password}"><svg aria-hidden="true"><use href="#i-key"/></svg>Change password</a></div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin-bottom:6px">Details only the card office can change</h2>
+      <p class="muted" style="margin-bottom:16px">These come from your ID document and registration. Ask the card office if something is wrong.</p>
+      <dl class="facts">
+        <dt>Full name</dt><dd th:text="${s.fullName}">Name</dd>
+        <dt>Student number</dt><dd class="num" th:text="${s.studentNumber}">000</dd>
+        <dt>ID number</dt><dd class="num" th:text="${s.maskedIdNumber}">id</dd>
+        <dt>Date of birth</dt><dd th:text="${s.birthDateText}">date</dd>
+        <dt>Gender</dt><dd th:text="${s.gender}">gender</dd>
+        <dt>Citizenship</dt><dd th:text="${s.nationality}">citizen</dd>
+        <dt>Campus</dt><dd th:text="${s.campus}">campus</dd>
+        <dt>Faculty</dt><dd th:text="${s.department}">faculty</dd>
+        <dt>Qualification</dt><dd th:text="${s.qualification} ?: 'Not set'">qualification</dd>
+      </dl>
+    </section>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

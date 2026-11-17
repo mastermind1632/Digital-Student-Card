@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Check a student card')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page page--narrow">
+  <div class="page-head"><div><h1>Check a student card</h1>
+  <p>Scan the QR code on the back of the card with your phone's camera. It opens this page with the card's live status and the student's photo.</p></div></div>
+  <div class="panel stack">
+    <p>Staff with a scanner account can check many cards quickly, or type in a student number.</p>
+    <a class="btn btn--primary" th:href="@{/scan}"><svg aria-hidden="true"><use href="#i-scan"/></svg>Open the staff scanner</a>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

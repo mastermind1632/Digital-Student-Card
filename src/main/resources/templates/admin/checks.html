@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Card checks')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<div th:replace="~{fragments/layout :: admin(~{::content})}">
+<th:block th:fragment="content">
+<div class="page-head"><div><h1>Card checks</h1><p>Every scan at a gate, every QR link opened with a phone camera and every number typed into the scanner.</p></div></div>
+<section class="panel panel--flush">
+  <form class="filters" method="get" th:action="@{/admin/checks}" role="search" data-autosubmit style="grid-template-columns:minmax(200px,2fr) minmax(160px,1fr) auto">
+    <div class="field"><label for="q">Search</label><input id="q" name="q" type="search" placeholder="Student number, name or staff member" th:value="${q}"></div>
+    <div class="field"><label for="result">Result</label>
+      <select id="result" name="result"><option value="">All results</option>
+        <option value="passed" th:selected="${resultFilter == 'passed'}">Valid only</option>
+        <option value="failed" th:selected="${resultFilter == 'failed'}">Not valid only</option></select></div>
+    <div class="field"><span class="label" aria-hidden="true">&nbsp;</span><button class="btn btn--secondary" type="submit">Search</button></div>
+  </form>
+  <div class="empty" th:if="${#lists.isEmpty(result.items)}"><h3>No checks found</h3><p>Checks appear here as soon as cards are scanned.</p></div>
+  <th:block th:unless="${#lists.isEmpty(result.items)}">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>When</th><th>Student</th><th>Result</th><th class="hide-sm">How</th><th class="hide-sm">Checked by</th><th class="hide-sm">Where</th></tr></thead>
+      <tbody>
+        <tr th:each="ch : ${result.items}">
+          <td class="num" th:text="${ch.checkedAtText}">time</td>
+          <td><a th:if="${ch.studentName != null}" th:href="@{/admin/student(sn=${ch.studentNumber})}" th:text="${ch.studentName}">Name</a><span th:unless="${ch.studentName != null}" class="num" th:text="${ch.studentNumber} ?: 'Unreadable code'">000</span></td>
+          <td><span th:class="'status status--' + ${ch.passed ? 'valid' : 'failed'}" th:text="${ch.resultLabel}">Valid</span></td>
+          <td class="hide-sm" th:text="${ch.methodLabel}">Scan</td>
+          <td class="hide-sm" th:text="${ch.checkedBy}">who</td>
+          <td class="hide-sm" th:text="${ch.location}">where</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="pager"><span th:text="'Showing ' + ${result.firstShown} + '–' + ${result.lastShown} + ' of ' + ${result.total}">Showing</span>
+      <span class="row">
+        <a th:if="${result.hasPrevious}" class="btn btn--secondary btn--sm" th:href="@{/admin/checks(q=${q},result=${resultFilter},page=${result.previousPage})}">Previous</a>
+        <span th:text="'Page ' + ${result.page} + ' of ' + ${result.pageCount}">Page</span>
+        <a th:if="${result.hasNext}" class="btn btn--secondary btn--sm" th:href="@{/admin/checks(q=${q},result=${resultFilter},page=${result.nextPage})}">Next</a>
+      </span></div>
+  </th:block>
+</section>
+</th:block>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

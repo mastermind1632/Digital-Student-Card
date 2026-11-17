@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My card')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page" th:with="s=${student}">
+  <div class="panel" style="margin-bottom:24px" th:if="${justRegistered != null and justRegistered}">
+    <h2 th:text="'You\'re registered, ' + ${s.firstName} + '.'">You're registered.</h2>
+    <p class="muted" style="margin-top:6px">Your student number is</p>
+    <p class="welcome-number" th:text="${s.studentNumberDisplay}">000 000 000</p>
+    <p class="muted">Write it down: you sign in with it.<th:block th:if="${s.statusKey == 'pending'}"> The card office will approve your card soon; it shows as valid once approved.</th:block></p>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1 th:text="'Hello, ' + ${s.firstName}">Hello</h1>
+      <div class="status-line" style="margin-top:8px">
+        <span th:class="'status status--' + ${s.statusKey}" th:text="${s.statusLabel}">Status</span>
+        <span class="muted" th:if="${s.statusKey == 'active' and s.expiringSoon}" th:text="'Expires in ' + ${s.daysToExpiry} + (${s.daysToExpiry == 1} ? ' day' : ' days') + '. Ask the card office to renew it.'">Expires soon</span>
+        <span class="muted" th:if="${s.statusKey == 'active' and !s.expiringSoon}" th:text="'Valid until ' + ${s.expiryDateText}">Valid</span>
+        <span class="muted" th:if="${s.statusKey == 'pending'}">Waiting for the card office to approve your card.</span>
+        <span class="muted" th:if="${s.statusKey == 'expired'}" th:text="'Expired on ' + ${s.expiryDateText} + '. Visit ' + ${cfg.cardOffice} + ' to renew.'">Expired</span>
+        <span class="muted" th:if="${s.statusKey == 'suspended' or s.statusKey == 'revoked'}" th:text="${s.statusReason} ?: 'Contact the card office.'">Reason</span>
+      </div>
+    </div>
+    <a th:if="${s.cardValid}" class="btn btn--primary" th:href="@{/student/card}"><svg aria-hidden="true"><use href="#i-card"/></svg>Show my card</a>
+  </div>
+
+  <div class="grid-card grid-card--sticky">
+    <div class="stack">
+      <div th:replace="~{fragments/card :: flip(${s}, @{/media/photo(sn=${s.studentNumber})}, ${s.cardValid})}"></div>
+      <button type="button" class="btn btn--quiet" data-flip-toggle><svg aria-hidden="true"><use href="#i-flip"/></svg>Turn card over</button>
+    </div>
+
+    <div class="stack-lg">
+      <section>
+        <h2 style="margin-bottom:12px">Use your card</h2>
+        <div class="actions-grid">
+          <a class="action" th:href="@{/student/card}" th:attr="aria-disabled=${s.cardValid ? null : 'true'}"><svg aria-hidden="true"><use href="#i-card"/></svg><span><b>Show full screen</b><span>For gates and exam venues</span></span></a>
+          <a class="action" th:href="@{/student/card.pdf}" th:attr="aria-disabled=${s.cardValid ? null : 'true'}"><svg aria-hidden="true"><use href="#i-download"/></svg><span><b>Download PDF</b><span>Bank-card size, front and back</span></span></a>
+          <a class="action" th:href="@{/student/email}"><svg aria-hidden="true"><use href="#i-mail"/></svg><span><b>Email it to me</b><span th:text="'Sent to ' + ${s.email}">Sent to you</span></span></a>
+          <a class="action" th:href="@{/student/activity}"><svg aria-hidden="true"><use href="#i-shield"/></svg><span><b>Card checks</b><span th:text="${checkCount} + ' so far'">0 so far</span></span></a>
+        </div>
+      </section>
+
+      <section class="panel panel--flush">
+        <div class="panel__head"><h2>Recent checks</h2><a th:href="@{/student/activity}">See all</a></div>
+        <div class="empty" th:if="${#lists.isEmpty(checks)}"><h3>No checks yet</h3><p>Each time staff scan your card it shows up here, so you can spot anything you don't recognise.</p></div>
+        <ul class="list" th:unless="${#lists.isEmpty(checks)}">
+          <li th:each="ch : ${checks}"><span><span th:class="'status status--' + ${ch.passed ? 'valid' : 'failed'}" th:text="${ch.resultLabel}">Valid</span> <span class="meta"><th:block th:text="${ch.methodLabel}">Scan</th:block><th:block th:if="${ch.location != null and ch.location != ''}" th:text="', ' + ${ch.location}"></th:block></span></span><span class="meta" th:text="${ch.checkedAtText}">time</span></li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <div class="spread" style="margin-bottom:12px"><h2>My details</h2><a th:href="@{/student/profile}">Change</a></div>
+        <dl class="facts">
+          <dt>Student number</dt><dd class="num" th:text="${s.studentNumber}">000</dd>
+          <dt>Faculty</dt><dd th:text="${s.department}">Faculty</dd>
+          <dt>Year of study</dt><dd th:text="${s.yearOfStudy} ?: 'Not set'">1</dd>
+          <dt>Email</dt><dd th:text="${s.email}">email</dd>
+          <dt>Cellphone</dt><dd th:text="${s.phoneDisplay} ?: 'Not set'">phone</dd>
+          <dt>Date of birth</dt><dd th:text="${s.birthDateText}">date</dd>
+          <dt>ID number</dt><dd class="num" th:text="${s.maskedIdNumber}">id</dd>
+        </dl>
+      </section>
+    </div>
+  </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

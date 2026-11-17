@@ -1,0 +1,10 @@
+{
+  "name": "Digital Student Card",
+  "short_name": "Student Card",
+  "start_url": "../student/",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#12131c",
+  "theme_color": "#3b2a8c",
+  "icons": [{ "src": "img/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

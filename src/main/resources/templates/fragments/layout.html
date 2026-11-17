@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<!--
+  Shared page pieces. Every page uses:
+    <head th:replace="~{fragments/layout :: head('Page title')}"></head>
+    <th:block th:replace="~{fragments/layout :: top}"></th:block>     (skip link, icons, flash message)
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block> (at the end of <body>)
+  Public and student pages add the topbar/footer; staff pages wrap their content in admin(~{::content}).
+-->
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' – Digital Student Card'">Digital Student Card</title>
+  <meta name="description" th:content="'Digital student cards with QR verification for ' + ${cfg.institutionName} + '.'">
+  <meta name="theme-color" content="#3b2a8c">
+  <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+  <link rel="icon" th:href="@{/assets/img/icon.svg}" type="image/svg+xml">
+  <link rel="manifest" th:href="@{/assets/manifest.webmanifest}">
+  <link rel="preload" th:href="@{/assets/fonts/publicsans.woff}" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" th:href="@{/assets/css/app.css}">
+  <script th:src="@{/assets/js/theme.js}"></script>
+</head>
+<body>
+
+<th:block th:fragment="top">
+  <a class="skip" href="#main">Skip to content</a>
+  <svg th:replace="~{fragments/icons :: sprite}"></svg>
+  <div class="flash-slot" role="status" aria-live="polite" th:if="${flash != null}">
+    <div th:class="'notice notice--' + ${flash.type}" data-autohide>
+      <svg aria-hidden="true"><use th:attr="href=${flash.type == 'success' ? '#i-check' : (flash.type == 'error' ? '#i-alert' : '#i-info')}"/></svg>
+      <p th:text="${flash.message}">Message</p>
+      <button type="button" class="close" data-dismiss aria-label="Dismiss">×</button>
+    </div>
+  </div>
+</th:block>
+
+<th:block th:fragment="scripts">
+  <script th:src="@{/assets/js/app.js}"></script>
+</th:block>
+
+<header class="topbar" th:fragment="topbar">
+  <div class="topbar__in">
+    <a class="brand" th:href="@{/home}">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span>Digital Student Card<small th:text="${cfg.institutionName}">University</small></span>
+    </a>
+    <button type="button" class="menu-toggle" data-menu="topnav" aria-expanded="false" aria-controls="topnav" aria-label="Menu"><svg aria-hidden="true"><use href="#i-menu"/></svg></button>
+    <nav class="topnav" id="topnav" aria-label="Main">
+      <th:block th:if="${me != null and me.student}">
+        <a th:href="@{/student}" th:attr="aria-current=${path == '/student' or path == '/student/' ? 'page' : null}">My card</a>
+        <a th:href="@{/student/activity}" th:attr="aria-current=${path == '/student/activity' ? 'page' : null}">Card checks</a>
+        <a th:href="@{/student/profile}" th:attr="aria-current=${path == '/student/profile' or path == '/student/password' ? 'page' : null}">My details</a>
+        <form method="post" th:action="@{/logout}"><button class="btn btn--quiet" type="submit">Sign out</button></form>
+      </th:block>
+      <th:block th:if="${me != null and me.staff}">
+        <a th:href="${me.admin} ? @{/admin} : @{/scan}">Staff area</a>
+      </th:block>
+      <th:block th:if="${me == null}">
+        <a th:href="@{/login}" th:attr="aria-current=${path == '/login' ? 'page' : null}">Student sign-in</a>
+        <a th:href="@{/register}" th:attr="aria-current=${path == '/register' ? 'page' : null}">Get your card</a>
+        <a th:href="@{/admin/login}" th:attr="aria-current=${path == '/admin/login' ? 'page' : null}">Staff</a>
+      </th:block>
+      <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch between light and dark"><svg aria-hidden="true"><use href="#i-moon"/></svg></button>
+    </nav>
+  </div>
+</header>
+
+<footer class="footer" th:fragment="footer">
+  <span th:text="'© ' + ${cfg.institutionName}">© University</span>
+  <span th:text="'Lost your card or phone? Contact ' + ${cfg.cardOffice} + '.'">Lost your card?</span>
+</footer>
+
+<!-- Summary shown above a form when the server found problems. -->
+<div th:fragment="errors" th:if="${errors != null and !errors.isEmpty()}" class="notice notice--error" role="alert" tabindex="-1" data-focus style="margin-bottom:20px">
+  <svg aria-hidden="true"><use href="#i-alert"/></svg>
+  <p th:text="(${errors.size() == 1} ? 'One thing needs fixing' : ${errors.size()} + ' things need fixing') + ' before you can continue. Look for the messages in red below.'">Problems</p>
+</div>
+
+<!-- The message under one field. -->
+<span th:fragment="err(name)" class="error-text" th:if="${errors != null and errors.get(name) != null}" th:text="${errors.get(name)}">Error</span>
+
+<!-- Staff area: sidebar navigation around the page content. -->
+<div class="app" id="app" th:fragment="admin(content)">
+  <aside class="sidebar" aria-label="Staff navigation">
+    <a class="brand" th:href="${me.admin} ? @{/admin} : @{/scan}">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span>Card Office<small th:text="${cfg.institutionShortName} + ' staff'">staff</small></span>
+    </a>
+    <nav>
+      <th:block th:if="${me.admin}">
+        <a th:href="@{/admin}" th:attr="aria-current=${path == '/admin' or path == '/admin/' ? 'page' : null}"><svg aria-hidden="true"><use href="#i-chart"/></svg>Overview</a>
+        <a th:href="@{/admin/students}" th:attr="aria-current=${#strings.startsWith(path, '/admin/student') and path != '/admin/students/new' ? 'page' : null}"><svg aria-hidden="true"><use href="#i-users"/></svg>Students<span class="count" title="Awaiting approval" th:if="${pendingCount != null and pendingCount > 0}" th:text="${pendingCount}">0</span></a>
+        <a th:href="@{/admin/students/new}" th:attr="aria-current=${path == '/admin/students/new' ? 'page' : null}"><svg aria-hidden="true"><use href="#i-plus"/></svg>Register a student</a>
+      </th:block>
+      <a th:href="@{/scan}" th:attr="aria-current=${path == '/scan' ? 'page' : null}"><svg aria-hidden="true"><use href="#i-scan"/></svg>Scan cards</a>
+      <th:block th:if="${me.admin}">
+        <span class="sidebar__group">Records</span>
+        <a th:href="@{/admin/checks}" th:attr="aria-current=${path == '/admin/checks' ? 'page' : null}"><svg aria-hidden="true"><use href="#i-shield"/></svg>Card checks</a>
+        <a th:href="@{/admin/audit}" th:attr="aria-current=${path == '/admin/audit' ? 'page' : null}"><svg aria-hidden="true"><use href="#i-list"/></svg>Activity log</a>
+        <a th:href="@{/admin/staff}" th:attr="aria-current=${path == '/admin/staff' ? 'page' : null}"><svg aria-hidden="true"><use href="#i-lock"/></svg>Staff accounts</a>
+      </th:block>
+      <a th:href="@{/admin/password}" th:attr="aria-current=${path == '/admin/password' ? 'page' : null}"><svg aria-hidden="true"><use href="#i-key"/></svg>My password</a>
+    </nav>
+    <div class="sidebar__me">
+      <span class="initials" aria-hidden="true" th:text="${#strings.substring(me.displayName, 0, 1)}">A</span>
+      <div><b th:text="${me.displayName}">Name</b><span class="muted" th:text="${me.admin} ? 'Administrator' : 'Security officer'">Role</span></div>
+      <form method="post" th:action="@{/admin/logout}"><button class="btn btn--quiet btn--sm" type="submit" title="Sign out" aria-label="Sign out"><svg aria-hidden="true"><use href="#i-logout"/></svg></button></form>
+    </div>
+  </aside>
+  <div class="app__main">
+    <div class="app__bar">
+      <button type="button" class="menu-toggle" data-sidebar aria-label="Open navigation"><svg aria-hidden="true"><use href="#i-menu"/></svg></button>
+      <span class="brand"><span class="brand__mark" aria-hidden="true"></span>Card Office</span>
+      <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch between light and dark" style="margin-left:auto"><svg aria-hidden="true"><use href="#i-moon"/></svg></button>
+    </div>
+    <main id="main" class="page" th:insert="${content}"></main>
+  </div>
+</div>
+
+</body>
+</html>

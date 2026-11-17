@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Student sign-in')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="auth">
+  <div class="auth__form">
+    <div>
+      <h1>Sign in to your card</h1>
+      <p class="sub">Use your 9-digit student number or the email address you registered with.</p>
+      <div th:if="${loginError != null}" class="notice notice--error" role="alert" style="margin-bottom:16px"><svg aria-hidden="true"><use href="#i-alert"/></svg><p th:text="${loginError}">Error</p></div>
+      <form class="form" method="post" th:action="@{/login}" novalidate>
+        <div class="field">
+          <label for="studentNumber">Student number or email</label>
+          <input id="studentNumber" name="studentNumber" type="text" inputmode="email" autocomplete="username" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button type="button" class="btn btn--quiet btn--sm reveal" data-reveal="password">Show</button>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--block" type="submit">Sign in</button>
+      </form>
+      <p class="muted" style="margin-top:24px">New student? <a th:href="@{/register}">Get your card</a>.<br><th:block th:text="'Forgot your password? Ask ' + ${cfg.cardOffice} + ' to reset it.'">Forgot your password?</th:block></p>
+    </div>
+  </div>
+  <aside class="auth__side" aria-hidden="true">
+    <div>
+      <div class="idcard-scene" style="width:360px">
+        <div class="idcard" data-status="active" data-tilt>
+          <div class="idcard__foil"></div><div class="idcard__seal"></div>
+          <div class="idcard__inner">
+            <div class="idcard__top"><span class="idcard__inst" th:text="${cfg.institutionName}">University</span><span class="idcard__kind">Student</span></div>
+            <div class="idcard__photo"><div class="ph">?</div></div>
+            <div class="idcard__who"><div class="idcard__name">Your name here</div><div class="idcard__label">Student number</div><div class="idcard__number">••• ••• •••</div></div>
+            <div class="idcard__bottom"><div class="idcard__expiry"><span class="idcard__label">Valid until</span><b>—</b></div><span class="idcard__live" data-clock>--:--:--</span></div>
+          </div>
+        </div>
+      </div>
+      <p>The clock on your card ticks live. Security staff look for it, so keep your card open rather than showing a screenshot.</p>
+    </div>
+  </aside>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

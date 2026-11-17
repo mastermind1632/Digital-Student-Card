@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:with="editing=${mode == 'edit'}">
+<head th:replace="~{fragments/layout :: head(${editing} ? 'Edit student' : 'Register a student')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<div th:replace="~{fragments/layout :: admin(~{::content})}">
+<th:block th:fragment="content">
+<p class="crumbs" th:if="${editing}"><a th:href="@{/admin/student(sn=${student.studentNumber})}" th:text="${student.fullName}">Student</a></p>
+<p class="crumbs" th:unless="${editing}"><a th:href="@{/admin/students}">Students</a></p>
+<div class="page-head"><div>
+  <h1 th:text="${editing} ? 'Edit student' : 'Register a student'">Register a student</h1>
+  <p th:if="${editing}">The ID number cannot be changed. If it is wrong, delete this student and register again.</p>
+  <p th:unless="${editing}">Cards registered here are valid immediately. The student signs in with the student number shown after saving and the password you set.</p>
+</div></div>
+<div style="max-width:820px">
+  <div th:replace="~{fragments/layout :: errors}"></div>
+  <form th:if="${editing}" class="form panel" method="post" th:action="@{/admin/student/edit}" novalidate>
+    <input type="hidden" name="sn" th:value="${student.studentNumber}">
+    <th:block th:replace="~{fragments/forms :: student_fields('edit')}"></th:block>
+    <div class="row" style="justify-content:flex-end">
+      <a class="btn btn--quiet" th:href="@{/admin/student(sn=${student.studentNumber})}">Cancel</a>
+      <button class="btn btn--primary" type="submit">Save changes</button>
+    </div>
+  </form>
+  <form th:unless="${editing}" class="form panel" method="post" th:action="@{/admin/students/new}" enctype="multipart/form-data" novalidate>
+    <th:block th:replace="~{fragments/forms :: student_fields('new')}"></th:block>
+    <fieldset>
+      <legend>First password</legend>
+      <div th:replace="~{fragments/forms :: new_password('Password', false)}"></div>
+    </fieldset>
+    <div class="row" style="justify-content:flex-end">
+      <a class="btn btn--quiet" th:href="@{/admin/students}">Cancel</a>
+      <button class="btn btn--primary" type="submit">Register and issue card</button>
+    </div>
+  </form>
+</div>
+</th:block>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

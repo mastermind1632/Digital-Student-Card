@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${student.fullName})}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<div th:replace="~{fragments/layout :: admin(~{::content})}">
+<th:block th:fragment="content" th:with="s=${student}, photoSrc=@{/media/photo(sn=${student.studentNumber})}">
+<p class="crumbs"><a th:href="@{/admin/students}">Students</a></p>
+<div class="page-head">
+  <div>
+    <h1 th:text="${s.fullName}">Name</h1>
+    <div class="status-line" style="margin-top:8px"><span th:class="'status status--' + ${s.statusKey}" th:text="${s.statusLabel}">Status</span><span class="muted num" th:text="${s.studentNumber}">000</span>
+      <span class="muted" th:if="${s.statusReason != null}" th:text="'Reason: ' + ${s.statusReason}">Reason</span></div>
+  </div>
+  <div class="row">
+    <a class="btn btn--secondary" th:href="@{/admin/student/edit(sn=${s.studentNumber})}"><svg aria-hidden="true"><use href="#i-edit"/></svg>Edit details</a>
+    <a class="btn btn--secondary" th:href="@{/admin/student/card.pdf(sn=${s.studentNumber})}"><svg aria-hidden="true"><use href="#i-download"/></svg>PDF card</a>
+  </div>
+</div>
+
+<div class="notice notice--warning" style="margin-bottom:24px" th:if="${tempPassword != null}"><svg aria-hidden="true"><use href="#i-key"/></svg>
+  <p>Temporary password: <b class="num" style="font-size:1.1rem" th:text="${tempPassword}">temp</b>. It is shown only once. Ask the student to change it after signing in.</p></div>
+
+<div class="grid-card">
+  <div class="stack">
+    <div th:replace="~{fragments/card :: flip(${s}, ${photoSrc}, false)}"></div>
+    <button type="button" class="btn btn--quiet" data-flip-toggle><svg aria-hidden="true"><use href="#i-flip"/></svg>Turn card over</button>
+
+    <section class="panel stack">
+      <h2>Card actions</h2>
+      <form th:if="${s.statusKey == 'pending'}" method="post" th:action="@{/admin/student/action}"><input type="hidden" name="sn" th:value="${s.studentNumber}"><input type="hidden" name="action" value="approve">
+        <p class="muted" style="margin-bottom:12px">Check the photo against the ID number details before approving.</p>
+        <button class="btn btn--primary btn--block" type="submit"><svg aria-hidden="true"><use href="#i-check"/></svg>Approve card</button></form>
+      <div class="actions-grid">
+        <form method="post" th:action="@{/admin/student/action}"><input type="hidden" name="sn" th:value="${s.studentNumber}"><input type="hidden" name="action" value="renew">
+          <button class="action" type="submit"><svg aria-hidden="true"><use href="#i-clock"/></svg><span><b>Renew</b><span>Extend the expiry date</span></span></button></form>
+        <form method="post" th:action="@{/admin/student/action}" data-confirm="Issue a replacement card? The QR code on the current card stops working immediately."><input type="hidden" name="sn" th:value="${s.studentNumber}"><input type="hidden" name="action" value="reissue">
+          <button class="action" type="submit"><svg aria-hidden="true"><use href="#i-flip"/></svg><span><b>Replace card</b><span>For a lost phone or card</span></span></button></form>
+        <form method="post" th:action="@{/admin/student/action}"><input type="hidden" name="sn" th:value="${s.studentNumber}"><input type="hidden" name="action" value="email">
+          <button class="action" type="submit" th:disabled="${!(mailEnabled and s.cardValid)}" th:title="${mailEnabled and s.cardValid} ? null : 'Needs a valid card and email set up on the server'"><svg aria-hidden="true"><use href="#i-mail"/></svg><span><b>Email card</b><span th:text="'To ' + ${s.email}">To</span></span></button></form>
+        <form method="post" th:action="@{/admin/student/action}" data-confirm="Create a temporary password for this student? Their current password stops working."><input type="hidden" name="sn" th:value="${s.studentNumber}"><input type="hidden" name="action" value="reset-password">
+          <button class="action" type="submit"><svg aria-hidden="true"><use href="#i-key"/></svg><span><b>Reset password</b><span>Shows a one-time password</span></span></button></form>
+      </div>
+      <form th:if="${s.statusKey == 'suspended' or s.statusKey == 'revoked'}" method="post" th:action="@{/admin/student/action}"><input type="hidden" name="sn" th:value="${s.studentNumber}"><input type="hidden" name="action" value="reactivate">
+        <button class="btn btn--secondary btn--block" type="submit">Make the card valid again</button></form>
+      <button th:unless="${s.statusKey == 'suspended' or s.statusKey == 'revoked'}" type="button" class="btn btn--danger btn--block" data-open-dialog="suspend-dialog">Suspend card</button>
+    </section>
+
+    <section class="panel stack">
+      <h2>Replace photo</h2>
+      <form class="form" method="post" th:action="@{/admin/student/action}" enctype="multipart/form-data">
+        <input type="hidden" name="sn" th:value="${s.studentNumber}"><input type="hidden" name="action" value="photo">
+        <div class="photo-picker"><div class="photo-frame" id="photo-preview"><img th:src="${photoSrc}" alt="Current photo"></div>
+          <div class="stack"><input id="photo" name="photo" type="file" accept="image/jpeg,image/png" required data-preview="photo-preview" aria-label="New photo">
+          <div><button class="btn btn--secondary btn--sm" type="submit">Upload photo</button></div></div></div>
+      </form>
+    </section>
+  </div>
+
+  <div class="stack-lg">
+    <section class="panel">
+      <h2 style="margin-bottom:16px">Details</h2>
+      <dl class="facts">
+        <dt>Email</dt><dd><a th:href="'mailto:' + ${s.email}" th:text="${s.email}">email</a></dd>
+        <dt>Cellphone</dt><dd th:text="${s.phoneDisplay} ?: 'Not set'">phone</dd>
+        <dt>ID number</dt><dd class="num" th:text="${s.idNumber}">id</dd>
+        <dt>Date of birth</dt><dd th:text="${s.birthDateText}">date</dd>
+        <dt>Gender</dt><dd th:text="${s.gender}">gender</dd>
+        <dt>Citizenship</dt><dd th:text="${s.nationality}">citizen</dd>
+        <dt>Campus</dt><dd th:text="${s.campus}">campus</dd>
+        <dt>Faculty</dt><dd th:text="${s.department}">faculty</dd>
+        <dt>Qualification</dt><dd th:text="${s.qualification} ?: 'Not set'">qualification</dd>
+        <dt>Year of study</dt><dd th:text="${s.yearOfStudy} ?: 'Not set'">year</dd>
+        <dt>Card issued</dt><dd th:text="(${s.issueDateText} ?: '—') + ', version ' + ${s.cardVersion}">issued</dd>
+        <dt>Valid until</dt><dd th:text="${s.expiryDateText} ?: '—'">date</dd>
+        <dt>Registered</dt><dd th:text="${s.createdAtText}">date</dd>
+        <dt>Last sign-in</dt><dd th:text="${s.lastLoginText} ?: 'Never'">never</dd>
+        <dt>Check link</dt><dd><a th:href="${verifyUrl}" target="_blank" rel="noopener">Open the public check page</a></dd>
+      </dl>
+    </section>
+
+    <section class="panel panel--flush">
+      <div class="panel__head"><h2>Card checks</h2><a th:href="@{/admin/checks(q=${s.studentNumber})}">See all</a></div>
+      <div class="empty" th:if="${#lists.isEmpty(checks)}"><p>This card has not been checked yet.</p></div>
+      <ul class="list" th:unless="${#lists.isEmpty(checks)}">
+        <li th:each="ch : ${checks}"><span><span th:class="'status status--' + ${ch.passed ? 'valid' : 'failed'}" th:text="${ch.resultLabel}">Valid</span> <span class="meta"><th:block th:text="${ch.methodLabel} + ', ' + ${ch.checkedBy}">how</th:block><th:block th:if="${ch.location != null and ch.location != ''}" th:text="', ' + ${ch.location}"></th:block></span></span><span class="meta" th:text="${ch.checkedAtText}">time</span></li>
+      </ul>
+    </section>
+
+    <section class="panel panel--flush">
+      <div class="panel__head"><h2>History</h2></div>
+      <ul class="list">
+        <li th:each="e : ${events}"><span><th:block th:text="${e.action}">Action</th:block><span class="meta" style="display:block"><th:block th:text="'by ' + ${e.actor}">by</th:block><th:block th:if="${e.details != null}" th:text="': ' + ${e.details}"></th:block></span></span><span class="meta" th:text="${e.occurredAtText}">time</span></li>
+        <li class="muted" th:if="${#lists.isEmpty(events)}">No recorded changes.</li>
+      </ul>
+    </section>
+
+    <section class="panel stack">
+      <h2>Delete student</h2>
+      <p class="muted">Removes the student, the card and the photo. Card checks and history stay in the records. This cannot be undone.</p>
+      <div><button type="button" class="btn btn--danger" data-open-dialog="delete-dialog">Delete student</button></div>
+    </section>
+  </div>
+</div>
+
+<dialog id="suspend-dialog" aria-labelledby="suspend-title">
+  <form method="post" th:action="@{/admin/student/action}">
+    <input type="hidden" name="sn" th:value="${s.studentNumber}">
+    <div class="panel__body">
+      <h2 id="suspend-title">Suspend this card</h2>
+      <p class="muted">Scans will show the card as suspended until you make it valid again. The student sees the reason.</p>
+      <div class="field"><label for="reason">Reason</label><textarea id="reason" name="reason" required maxlength="250" placeholder="e.g. Reported lost on 10 November"></textarea></div>
+      <label class="row"><input type="radio" name="action" value="suspend" checked> Suspend (can be undone)</label>
+      <label class="row"><input type="radio" name="action" value="revoke"> Revoke (student has left)</label>
+    </div>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-close-dialog>Cancel</button><button class="btn btn--primary" type="submit">Suspend card</button></div>
+  </form>
+</dialog>
+
+<dialog id="delete-dialog" aria-labelledby="delete-title">
+  <form method="post" th:action="@{/admin/student/action}">
+    <input type="hidden" name="sn" th:value="${s.studentNumber}"><input type="hidden" name="action" value="delete">
+    <div class="panel__body">
+      <h2 id="delete-title" th:text="'Delete ' + ${s.fullName} + '?'">Delete?</h2>
+      <p class="muted">Type the student number <b class="num" th:text="${s.studentNumber}">000</b> to confirm.</p>
+      <div class="field"><label for="confirm">Student number</label><input id="confirm" name="confirm" type="text" inputmode="numeric" autocomplete="off" required th:attr="data-must-equal=${s.studentNumber}"></div>
+    </div>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-close-dialog>Cancel</button><button class="btn btn--danger" type="submit" data-confirm-target disabled>Delete for good</button></div>
+  </form>
+</dialog>
+</th:block>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

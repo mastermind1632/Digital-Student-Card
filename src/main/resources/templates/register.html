@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Get your student card')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main id="main" class="page page--mid">
+  <div class="page-head">
+    <div>
+      <h1>Get your student card</h1>
+      <p>This takes about three minutes. Have your ID number and a clear photo of your face ready.<th:block th:if="${needsApproval}"> The card office approves new cards, usually within one working day.</th:block></p>
+    </div>
+  </div>
+  <div th:replace="~{fragments/layout :: errors}"></div>
+  <form class="form panel" method="post" th:action="@{/register}" enctype="multipart/form-data" novalidate data-register>
+    <th:block th:replace="~{fragments/forms :: student_fields('register')}"></th:block>
+    <fieldset>
+      <legend>Choose a password</legend>
+      <div th:replace="~{fragments/forms :: new_password('Password', true)}"></div>
+    </fieldset>
+    <div class="spread">
+      <p class="hint">By registering you confirm the details are yours and correct.</p>
+      <button class="btn btn--primary" type="submit"><svg aria-hidden="true"><use href="#i-card"/></svg>Create my card</button>
+    </div>
+  </form>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

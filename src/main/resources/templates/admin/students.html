@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Students')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: top}"></th:block>
+<div th:replace="~{fragments/layout :: admin(~{::content})}">
+<th:block th:fragment="content" th:with="qs=${filterQuery == '' ? '' : filterQuery + '&'}">
+<div class="page-head">
+  <div><h1>Students</h1><p th:text="${result.total} + (${result.total == 1} ? ' student matches' : ' students match') + ' the filters.'">0 students</p></div>
+  <div class="row">
+    <a class="btn btn--secondary" th:href="@{/admin/students/export} + '?' + ${filterQuery}"><svg aria-hidden="true"><use href="#i-download"/></svg>Export CSV</a>
+    <a class="btn btn--primary" th:href="@{/admin/students/new}"><svg aria-hidden="true"><use href="#i-plus"/></svg>Register a student</a>
+  </div>
+</div>
+
+<section class="panel panel--flush">
+  <nav class="tabs" aria-label="Card status">
+    <a th:href="@{/admin/students}" th:attr="aria-current=${query.status == null or query.status == '' ? 'page' : null}">All</a>
+    <a th:href="@{/admin/students(status='pending')}" th:attr="aria-current=${query.status == 'pending' ? 'page' : null}">Awaiting approval<span class="count" th:if="${pendingCount > 0}" th:text="${pendingCount}">0</span></a>
+    <a th:href="@{/admin/students(status='active')}" th:attr="aria-current=${query.status == 'active' ? 'page' : null}">Valid</a>
+    <a th:href="@{/admin/students(status='expiring')}" th:attr="aria-current=${query.status == 'expiring' ? 'page' : null}">Expiring soon</a>
+    <a th:href="@{/admin/students(status='expired')}" th:attr="aria-current=${query.status == 'expired' ? 'page' : null}">Expired</a>
+    <a th:href="@{/admin/students(status='suspended')}" th:attr="aria-current=${query.status == 'suspended' ? 'page' : null}">Suspended</a>
+    <a th:href="@{/admin/students(status='revoked')}" th:attr="aria-current=${query.status == 'revoked' ? 'page' : null}">Revoked</a>
+  </nav>
+
+  <form class="filters" method="get" th:action="@{/admin/students}" role="search" data-autosubmit>
+    <input type="hidden" name="status" th:value="${query.status}">
+    <div class="field"><label for="q">Search</label><input id="q" name="q" type="search" placeholder="Name, student number, email or ID number" th:value="${query.q}"></div>
+    <div class="field"><label for="f-campus">Campus</label>
+      <select id="f-campus" name="campus"><option value="">All campuses</option>
+        <option th:each="opt : ${cfg.campuses}" th:value="${opt}" th:text="${opt}" th:selected="${query.campus == opt}">Campus</option>
+      </select></div>
+    <div class="field"><label for="f-dept">Faculty</label>
+      <select id="f-dept" name="department"><option value="">All faculties</option>
+        <option th:each="opt : ${cfg.departments}" th:value="${opt}" th:text="${opt}" th:selected="${query.department == opt}">Faculty</option>
+      </select></div>
+    <div class="field"><label for="f-sort">Sort by</label>
+      <select id="f-sort" name="sort">
+        <option value="newest" th:selected="${query.sort == 'newest'}">Newest first</option>
+        <option value="name" th:selected="${query.sort == 'name'}">Name</option>
+        <option value="number" th:selected="${query.sort == 'number'}">Student number</option>
+        <option value="expiry" th:selected="${query.sort == 'expiry'}">Expiry date</option>
+      </select></div>
+    <div class="field"><span class="label" aria-hidden="true">&nbsp;</span><button class="btn btn--secondary" type="submit"><svg aria-hidden="true"><use href="#i-search"/></svg>Search</button></div>
+  </form>
+
+  <div class="empty" th:if="${#lists.isEmpty(result.items)}"><h3>No students found</h3><p>Try a shorter search or clear the filters.</p><p style="margin-top:12px"><a th:href="@{/admin/students}">Clear filters</a></p></div>
+  <th:block th:unless="${#lists.isEmpty(result.items)}">
+    <form method="post" th:action="@{/admin/students/bulk}" data-bulk>
+      <input type="hidden" name="back" th:value="'/admin/students?' + ${filterQuery}">
+      <div class="bulkbar" data-bulkbar>
+        <span><b data-selected-count>0</b> selected</span>
+        <button class="btn btn--primary btn--sm" type="submit" name="action" value="approve">Approve</button>
+        <button class="btn btn--secondary btn--sm" type="submit" name="action" value="renew">Renew</button>
+      </div>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th class="check"><input type="checkbox" data-select-all aria-label="Select all on this page"></th><th>Student</th><th class="hide-sm">Campus and faculty</th><th>Card</th><th class="hide-sm">Valid until</th></tr></thead>
+        <tbody>
+          <tr th:each="st : ${result.items}">
+            <td class="check"><input type="checkbox" name="sn" th:value="${st.studentNumber}" th:attr="aria-label='Select ' + ${st.fullName}"></td>
+            <td><div class="person"><img th:src="@{/media/photo(sn=${st.studentNumber})}" alt="" loading="lazy"><div><a th:href="@{/admin/student(sn=${st.studentNumber})}" th:text="${st.fullName}">Name</a><small class="num" th:text="${st.studentNumber}">000</small><small th:text="${st.email}">email</small></div></div></td>
+            <td class="hide-sm"><th:block th:text="${st.campus}">Campus</th:block><small class="muted" style="display:block" th:text="${st.department}">Faculty</small></td>
+            <td><span th:class="'status status--' + ${st.statusKey}" th:text="${st.statusLabel}">Status</span></td>
+            <td class="hide-sm num" th:text="${st.expiryDateText}">date</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </form>
+    <div class="pager">
+      <span th:text="'Showing ' + ${result.firstShown} + '–' + ${result.lastShown} + ' of ' + ${result.total}">Showing</span>
+      <span class="row">
+        <a th:if="${result.hasPrevious}" class="btn btn--secondary btn--sm" th:href="@{/admin/students} + '?' + ${qs} + 'page=' + ${result.previousPage}">Previous</a>
+        <span th:text="'Page ' + ${result.page} + ' of ' + ${result.pageCount}">Page 1 of 1</span>
+        <a th:if="${result.hasNext}" class="btn btn--secondary btn--sm" th:href="@{/admin/students} + '?' + ${qs} + 'page=' + ${result.nextPage}">Next</a>
+      </span>
+    </div>
+  </th:block>
+</section>
+</th:block>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- The front of a card. s = Student, photoSrc = image URL (or null for initials), clock = true for the live clock -->
+<div th:fragment="front(s, photoSrc, clock)" class="idcard" th:attr="data-status=${s.statusKey}" data-tilt>
+  <div class="idcard__foil" aria-hidden="true"></div>
+  <div class="idcard__seal" aria-hidden="true"></div>
+  <div class="idcard__inner">
+    <div class="idcard__top">
+      <span class="idcard__inst" th:text="${cfg.institutionName}">University</span>
+      <span class="idcard__kind">Student</span>
+    </div>
+    <div class="idcard__photo">
+      <img th:if="${photoSrc != null}" th:src="${photoSrc}" th:alt="'Photo of ' + ${s.fullName}">
+      <div th:unless="${photoSrc != null}" class="ph" aria-hidden="true" th:text="${s.initials}">AB</div>
+    </div>
+    <div class="idcard__who">
+      <div class="idcard__name" th:text="${s.fullName}">Name</div>
+      <div class="idcard__label">Student number</div>
+      <div class="idcard__number" th:text="${s.studentNumberDisplay}">000 000 000</div>
+      <div class="idcard__meta"><th:block th:text="${s.qualification}">Qualification</th:block><br><th:block th:text="${s.campus}">Campus</th:block></div>
+    </div>
+    <div class="idcard__bottom">
+      <div class="idcard__expiry"><span class="idcard__label">Valid until</span><b th:text="${s.expiryDateText} ?: '—'">—</b></div>
+      <span th:if="${clock}" class="idcard__live" data-clock>--:--:--</span>
+      <span th:unless="${clock}" class="idcard__chip" th:text="${s.statusLabel}">Status</span>
+    </div>
+  </div>
+  <div class="idcard__stamp" th:text="${s.statusLabel}">Status</div>
+</div>
+
+<!-- The back of a card with the verification QR code. -->
+<div th:fragment="back(s)" class="idcard idcard--back">
+  <div class="idcard__band" aria-hidden="true"></div>
+  <div class="idcard__backgrid">
+    <div class="idcard__small">
+      <p><b>Scan to check this card.</b> The QR code opens the card's live status. A screenshot or copy cannot hide a suspended or expired card.</p>
+      <p style="margin-top:2.4cqw">Issued <b th:text="${s.issueDateText} ?: '—'">date</b>, card version <b th:text="${s.cardVersion}">1</b></p>
+      <p style="margin-top:2.4cqw" th:text="'If found, return to ' + ${cfg.cardOffice} + '.'">If found, return it.</p>
+    </div>
+    <img class="idcard__qr" th:src="@{/media/qr(sn=${s.studentNumber},size=400)}" alt="QR code for checking this card">
+  </div>
+</div>
+
+<!-- Both sides in a flip container. -->
+<div th:fragment="flip(s, photoSrc, clock)" class="flip" data-flip>
+  <div class="flip__inner">
+    <div class="flip__face"><div th:replace="~{fragments/card :: front(${s}, ${photoSrc}, ${clock})}"></div></div>
+    <div class="flip__face flip__face--back"><div th:replace="~{fragments/card :: back(${s})}"></div></div>
+  </div>
+</div>
+
+</body>
+</html>

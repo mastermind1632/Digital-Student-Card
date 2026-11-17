@@ -1,0 +1,62 @@
+# Digital Student Card: PostgreSQL + the Spring Boot app.
+#   docker compose up --build        then open http://localhost:8080
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: studentcard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-studentcard}
+    ports:
+      # bound to localhost only, so the database is not exposed to your network
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # PostgreSQL 18+ images keep data in a versioned sub-folder, so the volume
+      # must be mounted at /var/lib/postgresql (NOT /var/lib/postgresql/data).
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-studentcard}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: studentcard-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-studentcard}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      APP_INSTITUTION_NAME: ${APP_INSTITUTION_NAME:-Tshwane University of Technology}
+      APP_INSTITUTION_SHORT_NAME: ${APP_INSTITUTION_SHORT_NAME:-TUT}
+      APP_CARD_OFFICE: ${APP_CARD_OFFICE:-the Student Card Office}
+      # Address put inside QR codes. Set it to http://<your-PC-IP>:8080 so phones on the same Wi-Fi can open the links.
+      APP_PUBLIC_BASE_URL: ${APP_PUBLIC_BASE_URL:-}
+      APP_CARD_VALIDITY_MONTHS: ${APP_CARD_VALIDITY_MONTHS:-12}
+      APP_REGISTRATION_APPROVAL: ${APP_REGISTRATION_APPROVAL:-true}
+      APP_SETUP_KEY: ${APP_SETUP_KEY:-}
+      # Demo staff accounts and fictional students (only added when the database has no staff yet).
+      APP_DEMO_SEED: ${APP_DEMO_SEED:-true}
+      # Optional email for sending cards (Gmail: smtp.gmail.com, 587 and an app password).
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      APP_MAIL_FROM: ${APP_MAIL_FROM:-no-reply@student-card.local}
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /actuator/health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+
+volumes:
+  postgres_data:
